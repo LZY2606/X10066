@@ -1,0 +1,115 @@
+name: "Check PR complains with requirements"
+
+on:
+  pull_request_target:
+  workflow_run:
+    workflows: ['Run tests for PR']
+    types: [completed]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+jobs:
+  restore-pr:
+    if: github.event_name == 'workflow_run'
+    runs-on: ubuntu-latest
+    outputs:
+      pr-number: ${{ steps.pr-info.outputs.pr-number }}
+    steps:
+    - name: Download PR info
+      uses: dawidd6/action-download-artifact@v24
+      with:
+        name: pr_number
+        path: pr/
+        run_id: ${{ github.event.workflow_run.id }}
+    - name: Store PR number
+      id: pr-info
+      run: echo "pr-number=$(cat pr/pr_number)" >> $GITHUB_OUTPUT
+  reviewdog:
+    if: github.event_name == 'pull_request_target'
+    permissions:
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+    - name: 'Checkout Repository'
+      uses: actions/checkout@v7
+    - uses: actions/setup-java@v6
+      with:
+        distribution: temurin
+        java-version-file: .java-version
+    - name: Validate Gradle Wrapper
+      uses: gradle/actions/wrapper-validation@v6
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v6
+      with:
+        gradle-version: wrapper
+    - name: Setup format tools
+      run: |
+        ./gradlew --dry-run -q # download wrapper if needed
+        export DETEKT_VERSION=$(./gradlew --console plain -q printDetektVersion)
+        export KTLINT_VERSION=$(./gradlew --console plain -q printKtlintVersion)
+        mkdir -p ${HOME}/.local/bin
+        ./scripts/install-format-tools.sh
+    - name: 'Checkout PR'
+      uses: actions/checkout@v7
+      with:
+        repository: ${{ github.event.pull_request.head.repo.full_name }}
+        ref: ${{ github.event.pull_request.head.ref }}
+    - name: Setup reviewdog
+      uses: reviewdog/action-setup@v1
+      with:
+        reviewdog_version: latest
+    - name: Run reviewdog detekt
+      run: >
+        detekt-cli -c config/detekt/detekt.yml --includes '**/src/*Main/**/*.kt;**/src/main/**/*.kt' |
+        reviewdog -tee -reporter=github-pr-review -log-level=debug -efm="%f:%l:%c: %m" -name=detekt
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ github.token }}
+    - name: Run reviewdog ktlint
+      run: >
+        ktlint '**/*.kt' '**/*.kts' '!**/build/generated*/**' |
+        reviewdog -tee -reporter=github-pr-review -log-level=debug -efm="%f:%l:%c: %m" -name=ktlint
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ github.token }}
+
+  danger-check:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      statuses: write
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v7
+      - name: Danger
+        uses: danger/kotlin@1.3.4
+        with:
+          run-mode: ci
+          dangerfile: Dangerfile.df.kts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  upload-coverage:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.actor.name != 'dependabot[bot]' && github.event.workflow_run.conclusion == 'success'
+    needs:
+      - restore-pr
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.event.workflow_run.head_repository.full_name }}
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Download benchmark results
+        uses: dawidd6/action-download-artifact@v24
+        with:
+          name: coverage-reports
+          path: reports/
+          run_id: ${{ github.event.workflow_run.id }}
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          override_branch: ${{ github.event.workflow_run.head_branch }}
+          override_commit: ${{ github.event.workflow_run.head_sha }}
+          override_pr: ${{ needs.restore-pr.outputs.pr-number }}
+          token: ${{ secrets.CODECOV_TOKEN }}

@@ -1,0 +1,45 @@
+.idea/
+build/
+out/
+
+.gradle/
+.kotlin/
+
+# downloaded data for unicode characters
+unicode_dump/
+
+# to keep the local secrets from been published
+local.properties
+# --- 依赖与构建产物（不进交付快照）---
+node_modules/
+bower_components/
+.pnp.*
+dist/
+target/
+.next/
+.nuxt/
+.svelte-kit/
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+vendor/bundle/
+Pods/
+.cargo/
+.DS_Store
+.env
+.env.*
+*.log
+coverage/
+.coverage
+.nyc_output/
+.cache/
+.parcel-cache/
+.vite/
+.turbo/
+*.tsbuildinfo

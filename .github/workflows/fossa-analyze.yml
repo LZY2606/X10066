@@ -1,0 +1,50 @@
+name: Execute FOSSA analyze action
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    paths:
+      - 'gradle/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'gradle/**'
+  workflow_dispatch:
+
+jobs:
+  fossa-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v6
+      - name: Cache konan
+        uses: actions/cache@v6
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-gradle-${{ hashFiles('*.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: wrapper
+      - uses: fossas/fossa-action@v2
+        with:
+          api-key: ${{secrets.FOSSA_API_KEY}}
+          branch: ${{ github.event.pull_request.head.ref || github.ref_name }}
+      - uses: fossas/fossa-action@v2
+        if: github.event_name != 'push'
+        with:
+          api-key: ${{secrets.FOSSA_API_KEY}}
+          run-tests: true

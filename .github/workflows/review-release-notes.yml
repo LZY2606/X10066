@@ -1,0 +1,21 @@
+name: Renders release notes for next release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v7
+      - name: Build changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v6
+        with:
+          configuration: changelog_config.json
+          toTag: ${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Dump changelog
+        run: echo "${{ steps.build_changelog.outputs.changelog }}" >> $GITHUB_STEP_SUMMARY

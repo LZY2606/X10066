@@ -1,0 +1,159 @@
+name: "Create release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip-publication:
+        description: 'Skip publication of artifacts to Maven Central'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  VERSION_FILE: gradle.properties
+  VERSION_PATTERN: '(?<=version=).+'
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      CURRENT_VERSION: ${{ steps.versions.outputs.CURRENT_VERSION }}
+      NEXT_VERSION: ${{ steps.versions.outputs.NEXT_VERSION }}
+      RELEASE_VERSION: ${{ steps.versions.outputs.RELEASE_VERSION }}
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v7
+      - name: Get version
+        id: versions
+        uses: HardNorth/github-version-generate@v1.4.1
+        with:
+          version-source: file
+          version-file: ${{ env.VERSION_FILE }}
+          version-file-extraction-pattern: ${{ env.VERSION_PATTERN }}
+  build-and-test:
+    if: github.event.inputs.skip-publication != 'true' && !cancelled()
+    uses: ./.github/workflows/build-and-test.yml
+  publish_artifacts:
+    # permissions required for sigstore signature
+    permissions:
+      id-token: write
+      contents: read
+    needs:
+      - version
+      - build-and-test
+    if: github.event.inputs.skip-publication != 'true' && !cancelled()
+    runs-on: macos-latest
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v6
+      - name: Cache konan
+        uses: actions/cache@v6
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-gradle-${{ hashFiles('*.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: wrapper
+      - name: Build and publish release
+        run: >
+          ./gradlew --no-daemon --info
+          :json-schema-validator:assemble
+          :json-schema-validator-objects:assemble
+          publishToMavenCentral --no-configuration-cache
+          -Pversion=${{ needs.version.outputs.RELEASE_VERSION }}
+          -x :benchmark:benchmark
+        env:
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_SECRET_KEY }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
+  create_release:
+    runs-on: ubuntu-latest
+    needs:
+      - publish_artifacts
+      - version
+    if: ${{ !cancelled() }}
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v7
+      - name: Store SHA of HEAD commit on ENV
+        run: echo "GIT_HEAD=$(git rev-parse HEAD)" >> $GITHUB_ENV
+
+      - name: Create tag
+        id: create_tag
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.PUSH_PAT }}
+          script: |
+            const {GIT_HEAD} = process.env
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: "refs/tags/${{ needs.version.outputs.RELEASE_VERSION }}",
+              sha: `${GIT_HEAD}`
+            })
+
+      - name: Build changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v6
+        with:
+          configuration: changelog_config.json
+          toTag: ${{ needs.version.outputs.RELEASE_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release
+        id: create_release
+        uses: ncipollo/release-action@v1.21.0
+        with:
+          body: ${{ steps.build_changelog.outputs.changelog }}
+          name: Release ${{ needs.version.outputs.RELEASE_VERSION }}
+          tag: ${{ needs.version.outputs.RELEASE_VERSION }}
+          token: ${{ secrets.PUSH_PAT }}
+          makeLatest: ${{ github.ref == 'refs/heads/main' }}
+  update-version:
+    runs-on: ubuntu-latest
+    if : ${{ !cancelled() }}
+    needs:
+      - create_release
+      - version
+    steps:
+    - name: 'Checkout Repository'
+      uses: actions/checkout@v7
+      with:
+        token: ${{ secrets.PUSH_PAT }}
+    - name: Prepare next dev version
+      id: prepare_next_dev
+      run: |
+        # gradle
+        sed -i -e 's/${{ needs.version.outputs.CURRENT_VERSION }}/${{ needs.version.outputs.NEXT_VERSION }}/g' gradle.properties
+        sed -i -E -e 's/json-schema-validator((-[a-z]+)?:|\/)[0-9]+\.[0-9]+\.[0-9]+/json-schema-validator\1${{ needs.version.outputs.RELEASE_VERSION }}/g' README.md
+        sed -i -E -e 's/json-schema-validator((-[a-z]+)?:|\/)[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)/json-schema-validator\1${{ needs.version.outputs.NEXT_VERSION }}/g' README.md
+        # maven
+        sed -i -e 's|<version>[0-9]+\.[0-9]+\.[0-9]+|<version>${{ needs.version.outputs.RELEASE_VERSION }}|g' README.md
+        sed -i -e 's|<version>[0-9]+\.[0-9]+\.[0-9]+(-SNAPSHOT)|<version>${{ needs.version.outputs.NEXT_VERSION }}|g' README.md
+    - name: Show what has changed
+      if: ${{ !cancelled() }}
+      run: |
+        git diff
+    - name: Commit next dev version
+      id: commit_next_dev
+      uses: EndBug/add-and-commit@v10
+      with:
+        add: "['gradle.properties', 'README.md']"
+        default_author: github_actions
+        message: "Prepare next version"
