@@ -14,4 +14,5 @@ dependencies {
   implementation(libs.ktlint.gradle.plugin)
   implementation(libs.kotest.gradle.plugin)
   implementation(libs.ksp.gradle.plugin)
+  implementation(libs.gson)
 }
