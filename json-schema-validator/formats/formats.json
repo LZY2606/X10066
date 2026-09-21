@@ -1,0 +1,23 @@
+{
+  "formats": [
+    { "name": "date", "validator": "DateFormatValidator" },
+    { "name": "date-time", "validator": "DateTimeFormatValidator" },
+    { "name": "duration", "validator": "DurationFormatValidator" },
+    { "name": "email", "validator": "EmailFormatValidator" },
+    { "name": "hostname", "validator": "HostnameFormatValidator" },
+    { "name": "idn-email", "validator": "IdnEmailFormatValidator" },
+    { "name": "idn-hostname", "validator": "IdnHostnameFormatValidator" },
+    { "name": "ipv4", "validator": "IpV4FormatValidator" },
+    { "name": "ipv6", "validator": "IpV6FormatValidator" },
+    { "name": "iri", "validator": "IriFormatValidator" },
+    { "name": "iri-reference", "validator": "IriReferenceFormatValidator" },
+    { "name": "json-pointer", "validator": "JsonPointerFormatValidator" },
+    { "name": "regex", "validator": "RegexFormatValidator" },
+    { "name": "relative-json-pointer", "validator": "RelativeJsonPointerFormatValidator" },
+    { "name": "time", "validator": "TimeFormatValidator" },
+    { "name": "uri", "validator": "UriFormatValidator" },
+    { "name": "uri-reference", "validator": "UriReferenceFormatValidator" },
+    { "name": "uri-template", "validator": "UriTemplateFormatValidator" },
+    { "name": "uuid", "validator": "UuidFormatValidator" }
+  ]
+}

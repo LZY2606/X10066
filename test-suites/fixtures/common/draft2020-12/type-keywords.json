@@ -1,0 +1,20 @@
+[
+  {
+    "description": "string type accepts only strings",
+    "schema": { "type": "string" },
+    "tests": [
+      { "description": "a string is valid", "data": "gate", "valid": true },
+      { "description": "an empty string is valid", "data": "", "valid": true },
+      { "description": "a number is invalid", "data": 42, "valid": false },
+      { "description": "null is invalid", "data": null, "valid": false }
+    ]
+  },
+  {
+    "description": "boolean type accepts only booleans",
+    "schema": { "type": "boolean" },
+    "tests": [
+      { "description": "true is valid", "data": true, "valid": true },
+      { "description": "a string is invalid", "data": "true", "valid": false }
+    ]
+  }
+]

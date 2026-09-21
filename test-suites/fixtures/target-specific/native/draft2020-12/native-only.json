@@ -1,0 +1,10 @@
+[
+  {
+    "description": "fixture collected only by native targets",
+    "schema": { "type": "integer" },
+    "tests": [
+      { "description": "an integer is valid", "data": 1, "valid": true },
+      { "description": "a string is invalid", "data": "1", "valid": false }
+    ]
+  }
+]

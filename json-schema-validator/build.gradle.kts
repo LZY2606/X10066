@@ -2,6 +2,9 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import tasks.GenerateFormatRegistry
+import tasks.VerifyFormatRegistry
+import tasks.VerifyGeneratedSources
 
 plugins {
   convention.kotlin
@@ -52,4 +55,42 @@ kotlin {
       }
     }
   }
+}
+
+val generateFormatRegistry =
+  tasks.register<GenerateFormatRegistry>("generateFormatRegistry") {
+    specFile.set(layout.projectDirectory.file("formats/formats.json"))
+    outputFile.set(
+      layout.projectDirectory.file(
+        "src/commonMain/kotlin/io/github/optimumcode/json/schema/internal/formats/GeneratedFormatRegistry.kt",
+      ),
+    )
+  }
+
+// NOTE: the verify tasks intentionally reference the same paths directly instead of
+// depending on generateFormatRegistry. Depending on the generator would regenerate
+// the committed file before verification and the drift check would never fail.
+tasks.register<VerifyGeneratedSources>("verifyGeneratedSources") {
+  formatSpecFile.set(layout.projectDirectory.file("formats/formats.json"))
+  generatedRegistryFile.set(
+    layout.projectDirectory.file(
+      "src/commonMain/kotlin/io/github/optimumcode/json/schema/internal/formats/GeneratedFormatRegistry.kt",
+    ),
+  )
+}
+
+tasks.register<VerifyFormatRegistry>("verifyFormatRegistry") {
+  specFile.set(layout.projectDirectory.file("formats/formats.json"))
+  generatedRegistry.set(
+    layout.projectDirectory.file(
+      "src/commonMain/kotlin/io/github/optimumcode/json/schema/internal/formats/GeneratedFormatRegistry.kt",
+    ),
+  )
+  formatValidatorsDir.set(
+    layout.projectDirectory.dir("src/commonMain/kotlin/io/github/optimumcode/json/schema/internal/formats"),
+  )
+  draftConfigsDir.set(
+    layout.projectDirectory.dir("src/commonMain/kotlin/io/github/optimumcode/json/schema/internal/config"),
+  )
+  apiDumpFile.set(layout.projectDirectory.file("api/json-schema-validator.api"))
 }

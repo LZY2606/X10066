@@ -1,0 +1,10 @@
+[
+  {
+    "description": "format is annotation-only by default in draft 2020-12",
+    "schema": { "format": "date" },
+    "tests": [
+      { "description": "a valid date is valid", "data": "2024-02-29", "valid": true },
+      { "description": "an invalid date still passes when format only annotates", "data": "not-a-date", "valid": true }
+    ]
+  }
+]

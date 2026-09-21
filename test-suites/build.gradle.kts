@@ -1,7 +1,9 @@
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
+import tasks.CollectTargetFixtures
 import tasks.GenerateRemoteSchemas
+import tasks.VerifyFixtureParity
 
 plugins {
   convention.kotlin
@@ -71,6 +73,7 @@ tasks.withType<KotlinJsTest> {
   doFirst {
     // This is used to pass the right location for Node.js test
     environment("TEST_SUITES_DIR", "$projectDir/schema-test-suite/tests")
+    environment("GATE_FIXTURES_DIR", "$projectDir/fixtures")
     environment(
       "REMOTES_SCHEMAS_JSON",
       generateRemoteSchemas
@@ -85,6 +88,7 @@ tasks.withType<KotlinNativeSimulatorTest> {
   doFirst {
     // prefix SIMCTL_CHILD_ is used to pass the env variable to the simulator
     environment("SIMCTL_CHILD_TEST_SUITES_DIR", "$projectDir/schema-test-suite/tests")
+    environment("SIMCTL_CHILD_GATE_FIXTURES_DIR", "$projectDir/fixtures")
     environment(
       "SIMCTL_CHILD_REMOTES_SCHEMAS_JSON",
       generateRemoteSchemas
@@ -93,6 +97,38 @@ tasks.withType<KotlinNativeSimulatorTest> {
         }.get()
         .asFile.absolutePath,
     )
+  }
+}
+
+val verifyFixtureParity =
+  tasks.register<VerifyFixtureParity>("verifyFixtureParity") {
+    skipReport.set(layout.buildDirectory.file("reports/fixtureParity/target-specific-skips.txt"))
+  }
+
+kotlin.targets.configureEach {
+  // The metadata target only produces commonized klibs and never collects fixtures
+  if (name == "metadata") {
+    return@configureEach
+  }
+  val targetName = name
+  val targetCategory =
+    when (targetName) {
+      "jvm" -> "jvm"
+      "js" -> "js"
+      else -> "native"
+    }
+  val collectFixtures =
+    tasks.register<CollectTargetFixtures>(
+      "collect${targetName.replaceFirstChar { it.uppercase() }}Fixtures",
+    ) {
+      this.targetName.set(targetName)
+      this.targetCategory.set(targetCategory)
+      fixturesDir.set(layout.projectDirectory.dir("fixtures"))
+      reportFile.set(layout.buildDirectory.file("fixtureParity/$targetName.json"))
+    }
+  verifyFixtureParity.configure {
+    dependsOn(collectFixtures)
+    targetReports.from(collectFixtures.flatMap { it.reportFile })
   }
 }
 
