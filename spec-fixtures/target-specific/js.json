@@ -1,0 +1,6 @@
+{
+  "reason": "Kotlin/JS compiles Regex to RegExp without the unicode flag, so \\p{L} is not a unicode letter class there",
+  "skips": {
+    "common/pattern-unicode": ["ascii letters match"]
+  }
+}

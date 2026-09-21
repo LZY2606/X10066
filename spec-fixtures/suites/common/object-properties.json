@@ -1,0 +1,25 @@
+[
+  {
+    "description": "required properties must be present",
+    "schema": {
+      "type": "object",
+      "properties": { "name": { "type": "string" } },
+      "required": ["name"]
+    },
+    "tests": [
+      { "description": "object with name is valid", "data": { "name": "a" }, "valid": true },
+      { "description": "object without name is invalid", "data": {}, "valid": false }
+    ]
+  },
+  {
+    "description": "local ref resolves definitions",
+    "schema": {
+      "$ref": "#/$defs/positive",
+      "$defs": { "positive": { "type": "integer", "minimum": 1 } }
+    },
+    "tests": [
+      { "description": "positive integer is valid", "data": 2, "valid": true },
+      { "description": "zero is invalid", "data": 0, "valid": false }
+    ]
+  }
+]

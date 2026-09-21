@@ -1,0 +1,20 @@
+[
+  {
+    "description": "type keyword accepts matching instances",
+    "schema": { "type": "integer" },
+    "tests": [
+      { "description": "an integer is valid", "data": 3, "valid": true },
+      { "description": "a string is invalid", "data": "x", "valid": false },
+      { "description": "a float is invalid", "data": 1.5, "valid": false }
+    ]
+  },
+  {
+    "description": "enum constrains values to the listed set",
+    "schema": { "enum": ["red", "green", 3] },
+    "tests": [
+      { "description": "listed string is valid", "data": "green", "valid": true },
+      { "description": "listed number is valid", "data": 3, "valid": true },
+      { "description": "unlisted value is invalid", "data": "blue", "valid": false }
+    ]
+  }
+]

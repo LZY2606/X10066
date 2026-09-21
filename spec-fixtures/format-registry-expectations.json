@@ -1,0 +1,19 @@
+{
+  "draftFormatDefaults": [
+    { "draft": "draft4", "configFile": "Draft4SchemaLoaderConfig.kt", "expectedDefault": "ASSERTION" },
+    { "draft": "draft6", "configFile": "Draft6SchemaLoaderConfig.kt", "expectedDefault": "ASSERTION" },
+    { "draft": "draft7", "configFile": "Draft7SchemaLoaderConfig.kt", "expectedDefault": "ASSERTION" },
+    { "draft": "draft2019-09", "configFile": "Draft201909SchemaLoaderConfig.kt", "expectedDefault": "VOCABULARY" },
+    { "draft": "draft2020-12", "configFile": "Draft202012SchemaLoaderConfig.kt", "expectedDefault": "VOCABULARY" }
+  ],
+  "exportedApiFragments": [
+    "io/github/optimumcode/json/schema/FormatValidator",
+    "io/github/optimumcode/json/schema/FormatValidationResult",
+    "io/github/optimumcode/json/schema/FormatBehavior",
+    "ANNOTATION_ONLY",
+    "ANNOTATION_AND_ASSERTION",
+    "withCustomFormat",
+    "withCustomFormats",
+    "FORMAT_BEHAVIOR_OPTION"
+  ]
+}

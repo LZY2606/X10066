@@ -1,0 +1,17 @@
+[
+  {
+    "description": "date-time format is asserted",
+    "schema": { "format": "date-time" },
+    "tests": [
+      { "description": "valid rfc3339 date-time", "data": "2024-05-06T07:08:09Z", "valid": true },
+      { "description": "invalid month is rejected", "data": "2024-13-06T07:08:09Z", "valid": false }
+    ]
+  },
+  {
+    "description": "non-string values are not constrained by format",
+    "schema": { "format": "date-time" },
+    "tests": [
+      { "description": "numbers are valid", "data": 12, "valid": true }
+    ]
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "description": "unicode letter class in pattern",
+    "schema": { "pattern": "^\\p{L}+$" },
+    "tests": [
+      { "description": "ascii letters match", "data": "abc", "valid": true },
+      { "description": "digits do not match", "data": "123", "valid": false }
+    ]
+  }
+]
