@@ -1,0 +1,26 @@
+[
+  {
+    "description": "ipv4 format is asserted when format assertions are enabled",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "ipv4"
+    },
+    "tests": [
+      {
+        "description": "a valid ipv4 address passes",
+        "data": "10.0.0.1",
+        "valid": true
+      },
+      {
+        "description": "an octet above 255 fails",
+        "data": "256.0.0.1",
+        "valid": false
+      },
+      {
+        "description": "a non-string value is not constrained by the format",
+        "data": 42,
+        "valid": true
+      }
+    ]
+  }
+]

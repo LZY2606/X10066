@@ -1,0 +1,21 @@
+[
+  {
+    "description": "format is annotation-only by default in draft 2020-12 (format-assertion vocabulary is opt-in)",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "ipv4"
+    },
+    "tests": [
+      {
+        "description": "a valid ipv4 address passes",
+        "data": "192.168.0.1",
+        "valid": true
+      },
+      {
+        "description": "an invalid ipv4 address also passes because assertion is opt-in via vocabulary",
+        "data": "999.1.1.1",
+        "valid": true
+      }
+    ]
+  }
+]

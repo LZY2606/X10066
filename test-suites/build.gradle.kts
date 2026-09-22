@@ -63,6 +63,8 @@ dependencies {
 val generateRemoteSchemas =
   tasks.register<GenerateRemoteSchemas>("generateRemoteSchemas")
 
+val standaloneFixturesDir = rootProject.layout.projectDirectory.dir("verification/fixtures")
+
 tasks.withType<AbstractTestTask> {
   dependsOn(generateRemoteSchemas)
 }
@@ -70,6 +72,7 @@ tasks.withType<AbstractTestTask> {
 tasks.withType<KotlinJsTest> {
   doFirst {
     // This is used to pass the right location for Node.js test
+    environment("VERIFICATION_FIXTURES_DIR", standaloneFixturesDir.asFile.absolutePath)
     environment("TEST_SUITES_DIR", "$projectDir/schema-test-suite/tests")
     environment(
       "REMOTES_SCHEMAS_JSON",
@@ -84,6 +87,7 @@ tasks.withType<KotlinJsTest> {
 tasks.withType<KotlinNativeSimulatorTest> {
   doFirst {
     // prefix SIMCTL_CHILD_ is used to pass the env variable to the simulator
+    environment("SIMCTL_CHILD_VERIFICATION_FIXTURES_DIR", standaloneFixturesDir.asFile.absolutePath)
     environment("SIMCTL_CHILD_TEST_SUITES_DIR", "$projectDir/schema-test-suite/tests")
     environment(
       "SIMCTL_CHILD_REMOTES_SCHEMAS_JSON",
@@ -98,6 +102,7 @@ tasks.withType<KotlinNativeSimulatorTest> {
 
 tasks.withType<KotlinNativeTest> {
   doFirst {
+    environment("VERIFICATION_FIXTURES_DIR", standaloneFixturesDir.asFile.absolutePath)
     environment(
       "REMOTES_SCHEMAS_JSON",
       generateRemoteSchemas
@@ -110,6 +115,7 @@ tasks.withType<KotlinNativeTest> {
 
 tasks.withType<Test> {
   doFirst {
+    environment("VERIFICATION_FIXTURES_DIR", standaloneFixturesDir.asFile.absolutePath)
     environment(
       "REMOTES_SCHEMAS_JSON",
       generateRemoteSchemas

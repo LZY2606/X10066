@@ -1,0 +1,46 @@
+[
+  {
+    "description": "minimum keyword boundary",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "minimum": 2
+    },
+    "tests": [
+      {
+        "description": "value above the minimum is valid",
+        "data": 3,
+        "valid": true
+      },
+      {
+        "description": "value on the minimum boundary is valid",
+        "data": 2,
+        "valid": true
+      },
+      {
+        "description": "value below the minimum is invalid",
+        "data": 1,
+        "valid": false
+      }
+    ]
+  },
+  {
+    "description": "required keyword reports missing properties",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "required": ["id"]
+    },
+    "tests": [
+      {
+        "description": "object with the required property is valid",
+        "data": {"id": 1},
+        "valid": true
+      },
+      {
+        "description": "object without the required property is invalid",
+        "data": {"name": "missing id"},
+        "valid": false
+      }
+    ]
+  }
+]

@@ -1,0 +1,21 @@
+[
+  {
+    "description": "format asserts by default when no FORMAT_BEHAVIOR_OPTION is set",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "format": "ipv4"
+    },
+    "tests": [
+      {
+        "description": "a valid ipv4 address passes",
+        "data": "192.168.0.1",
+        "valid": true
+      },
+      {
+        "description": "an invalid ipv4 address fails because assertion is the default behavior",
+        "data": "999.1.1.1",
+        "valid": false
+      }
+    ]
+  }
+]
