@@ -1,0 +1,10 @@
+{
+  "id": "format",
+  "schema": { "format": "ipv4" },
+  "cases": [
+    { "data": "127.0.0.1", "valid": true },
+    { "data": "192.168.0.255", "valid": true },
+    { "data": "256.0.0.1", "valid": false },
+    { "data": "not-an-ip", "valid": false }
+  ]
+}

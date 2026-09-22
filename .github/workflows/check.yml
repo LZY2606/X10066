@@ -57,8 +57,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: wrapper
-      - name: Build
-        run: ./gradlew --no-daemon --info ${{ inputs.task }} koverXmlReport -x :benchmark:benchmark --build-cache
+      - name: Verify (unified multiplatform gate)
+        # The gate selects targets by runner OS. The 'task' input documents the
+        # host group (linuxAllTest/macOsAllTest/windowsAllTest) the caller chose.
+        run: >
+          ./gradlew --no-daemon --info verify koverXmlReport
+          -x :benchmark:benchmark --build-cache
       - name: Upload coverage reports to Codecov
         if: inputs.upload-code-coverage && github.actor != 'dependabot[bot]'
         uses: codecov/codecov-action@v7

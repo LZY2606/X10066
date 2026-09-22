@@ -13,25 +13,7 @@ import io.github.optimumcode.json.schema.internal.JsonSchemaAssertion
 import io.github.optimumcode.json.schema.internal.LoadingContext
 import io.github.optimumcode.json.schema.internal.TrueSchemaAssertion
 import io.github.optimumcode.json.schema.internal.factories.AbstractAssertionFactory
-import io.github.optimumcode.json.schema.internal.formats.DateFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.DateTimeFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.DurationFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.EmailFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.HostnameFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.IdnEmailFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.IdnHostnameFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.IpV4FormatValidator
-import io.github.optimumcode.json.schema.internal.formats.IpV6FormatValidator
-import io.github.optimumcode.json.schema.internal.formats.IriFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.IriReferenceFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.JsonPointerFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.RegexFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.RelativeJsonPointerFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.TimeFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.UriFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.UriReferenceFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.UriTemplateFormatValidator
-import io.github.optimumcode.json.schema.internal.formats.UuidFormatValidator
+import io.github.optimumcode.json.schema.internal.formats.GeneratedFormatsRegistry
 import io.github.optimumcode.json.schema.model.AbstractElement
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
@@ -68,28 +50,7 @@ internal sealed class FormatAssertionFactory(
   internal companion object {
     private const val FORMAT_PROPERTY = "format"
     internal val ANNOTATION: AnnotationKey<String> = AnnotationKeyFactory.create(FORMAT_PROPERTY)
-    private val KNOWN_FORMATS: Map<String, FormatValidator> =
-      mapOf(
-        "date" to DateFormatValidator,
-        "time" to TimeFormatValidator,
-        "date-time" to DateTimeFormatValidator,
-        "duration" to DurationFormatValidator,
-        "json-pointer" to JsonPointerFormatValidator,
-        "relative-json-pointer" to RelativeJsonPointerFormatValidator,
-        "ipv4" to IpV4FormatValidator,
-        "ipv6" to IpV6FormatValidator,
-        "uuid" to UuidFormatValidator,
-        "hostname" to HostnameFormatValidator,
-        "idn-hostname" to IdnHostnameFormatValidator,
-        "uri" to UriFormatValidator,
-        "uri-reference" to UriReferenceFormatValidator,
-        "iri" to IriFormatValidator,
-        "iri-reference" to IriReferenceFormatValidator,
-        "uri-template" to UriTemplateFormatValidator,
-        "email" to EmailFormatValidator,
-        "idn-email" to IdnEmailFormatValidator,
-        "regex" to RegexFormatValidator,
-      )
+    private val KNOWN_FORMATS: Map<String, FormatValidator> = GeneratedFormatsRegistry.formats
   }
 }
 

@@ -1,0 +1,14 @@
+{
+  "id": "type",
+  "schema": { "type": "integer" },
+  "cases": [
+    { "data": 1, "valid": true },
+    { "data": -7, "valid": true },
+    { "data": 1.5, "valid": false },
+    { "data": "x", "valid": false },
+    { "data": true, "valid": false },
+    { "data": null, "valid": false },
+    { "data": [1], "valid": false },
+    { "data": { "a": 1 }, "valid": false }
+  ]
+}

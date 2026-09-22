@@ -24,21 +24,35 @@ val linuxAllTest by tasks.register("linuxAllTest") {
   description = "runs all tests for Linux targets"
 }
 
+// iOS simulator tests need a full Xcode installation. They join the macOs group
+// only when the gate.ios property is set; the deterministic host set (macos*,
+// jvm, js, wasmJs) runs without it so the gate is reproducible on CI runners
+// that only have the command line tools.
+val includeIosSimulatorTests =
+  providers.gradleProperty("gate.ios").orNull == "true"
+
 kotlin.targets.configureEach {
   if (this !is KotlinTargetWithTests<*, *>) {
     return@configureEach
   }
+  val testTask = tasks.named("${name}Test")
   when {
-    name.startsWith("ios") || name.startsWith("macos") -> {
-      macOsAllTest.dependsOn(tasks.named("${name}Test"))
+    name.startsWith("ios") -> {
+      if (includeIosSimulatorTests) {
+        macOsAllTest.dependsOn(testTask)
+      }
+    }
+
+    name.startsWith("macos") -> {
+      macOsAllTest.dependsOn(testTask)
     }
 
     name.startsWith("mingw") -> {
-      windowsAllTest.dependsOn(tasks.named("${name}Test"))
+      windowsAllTest.dependsOn(testTask)
     }
 
     else -> {
-      linuxAllTest.dependsOn(tasks.named("${name}Test"))
+      linuxAllTest.dependsOn(testTask)
     }
   }
 }

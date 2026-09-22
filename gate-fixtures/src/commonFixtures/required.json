@@ -1,0 +1,11 @@
+{
+  "id": "required",
+  "schema": { "type": "object", "required": ["a", "b"] },
+  "cases": [
+    { "data": { "a": 1, "b": 2 }, "valid": true },
+    { "data": { "a": 1 }, "valid": false },
+    { "data": {}, "valid": false },
+    { "data": { "a": 1, "b": null }, "valid": true },
+    { "data": { "a": 1, "b": 2, "c": 3 }, "valid": true }
+  ]
+}

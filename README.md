@@ -524,6 +524,25 @@ This is needed to support `idn-hostname` format. Install this library with the f
 sudo apt-get install -y libunistring-dev
 ```
 
+### Multiplatform verification gate
+
+Run the unified, offline-reproducible gate from the repository root:
+
+```bash
+./gradlew verify          # resolves wrapper/locked dependencies if needed
+./gradlew verify --offline
+```
+
+The gate checks that generated sources (the built-in format registry) do not
+drift, that common fixtures are collected with identical results on every
+available target (JVM, JS Node, wasmJs Node and the host native target), that
+the exported API matches the committed signatures and that the full test suite
+passes. Target-specific fixtures are collected but reported separately.
+The small, independently runnable fixtures live in the `gate-fixtures` module
+(e.g. `./gradlew :gate-fixtures:jsNodeTest`).
+iOS simulator tests require a full Xcode installation and join the run with
+`-Pgate.ios=true`.
+
 ### Devcontainer
 
 Devcontainers is a cool feature. However, by default in Codespaces and DevPod you will use [VS Code](https://code.visualstudio.com/).

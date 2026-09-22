@@ -1,0 +1,8 @@
+{
+  "id": "native-only",
+  "schema": { "type": "string", "minLength": 2 },
+  "cases": [
+    { "data": "ab", "valid": true },
+    { "data": "x", "valid": false }
+  ]
+}
